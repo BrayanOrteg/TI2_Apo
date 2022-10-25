@@ -1,6 +1,9 @@
 package model;
 import java.security.PrivateKey;
 import java.util.*;
+import com.google.gson.Gson;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class Controller{
 
@@ -11,23 +14,25 @@ public class Controller{
     private ArrayList<Country> orderCountryArray;
 
 
-    public Controller(){
 
-        cityArray=new ArrayList<>();
+
+    public Controller(){
         countryArray=new ArrayList<>();
         orderCityArray=new ArrayList<>();
         orderCountryArray=new ArrayList<>();
 
-        City city2=new City("1","b","1",2);
-        City city1=new City("1","a","1",1);
-        City city3=new City("1","c","1",3);
-
-        cityArray.add(city2);
-        cityArray.add(city1);
-        cityArray.add(city3);
-        sortCityByPopulation();
+        ReadJson();
 
         System.out.println(Arrays.toString(cityArray.toArray()));
+        System.out.println(Arrays.toString(countryArray.toArray()));
+        String charsToRemove = "'(),";
+
+        /*
+        for (char c : charsToRemove.toCharArray()) {
+            prueba = prueba.replace(String.valueOf(c), "");
+        }
+
+         */
 
     }
 
@@ -102,23 +107,21 @@ public class Controller{
 
      */
 
-
-
     //Json methods
-/*
     public void WriteJson(){
 
         Gson gson = new Gson();
 
-        for(Patient p:allPatients){
-            p.setStatusPatient(StatusPatientEnum.OUT_OF_HOSPITAL);
-        }
-
-        String json = gson.toJson(allPatients);
+        String citiesJson = gson.toJson(cityArray);
+        String countriesJson = gson.toJson(countryArray);
 
         try {
-            FileOutputStream fos = new FileOutputStream(new File("dataBase\\patients.txt"));
-            fos.write( json.getBytes(StandardCharsets.UTF_8) );
+            FileOutputStream fos = new FileOutputStream(new File("dataBase\\Cities.txt"));
+            fos.write( citiesJson.getBytes(StandardCharsets.UTF_8) );
+            fos.close();
+
+            fos = new FileOutputStream(new File("dataBase\\Countries.txt"));
+            fos.write( countriesJson.getBytes(StandardCharsets.UTF_8) );
             fos.close();
 
         } catch (FileNotFoundException e) {
@@ -128,9 +131,12 @@ public class Controller{
         }
     }
 
-    public ArrayList<Patient> ReadJson() {
+
+    public void ReadJson() {
         try {
-            File file = new File("dataBase\\patients.txt");
+
+            //Read cities
+            File file = new File("dataBase\\Cities.txt");
             FileInputStream fis = new FileInputStream(file);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
@@ -142,22 +148,50 @@ public class Controller{
             }
             fis.close();
 
+            //Read countries
+            file = new File("dataBase\\Countries.txt");
+            fis = new FileInputStream(file);
+            reader = new BufferedReader(new InputStreamReader(fis));
+
+            String json2 = "";
+            String line2;
+            if((line2=reader.readLine())!=null){
+                json2= line2;
+            }
+            fis.close();
+
             Gson gson = new Gson();
-            Patient[] patienstFromJson = gson.fromJson(json, Patient[].class);
-            ArrayList<Patient> sent = new ArrayList<>();
+            City[] citiesFromJson = gson.fromJson(json, City[].class);
+            ArrayList<City> toSendCities = new ArrayList<>();
 
-            if(patienstFromJson!=null)sent.addAll(List.of(patienstFromJson));
+            Gson gson2= new Gson();
+            Country[] countriesFromJson = gson.fromJson(json2, Country[].class);
+            ArrayList<Country> toSendCountries = new ArrayList<>();
 
-            return sent;
+
+            if(citiesFromJson!=null)toSendCities.addAll(List.of(citiesFromJson));
+
+            if(countriesFromJson!=null)toSendCountries.addAll(List.of(countriesFromJson));
+
+            cityArray=toSendCities;
+            countryArray=toSendCountries;
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
- */
+    public void readSQL(String path){
+
+    }
+
+    public void readLine(String input){
+
+
+    }
+
+
 
 }

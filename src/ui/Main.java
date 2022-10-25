@@ -2,6 +2,9 @@ package ui;
 import model.Controller;
 
 import java.util.Scanner;
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
 
 public class Main {
 
@@ -9,21 +12,22 @@ public class Main {
     }
 
     private static Scanner sc;
-    private static  Controller control=new Controller();
+    private static  Controller control;
 
 
     public static void main(String [] args) {
 
         sc = new Scanner(System.in);
+        Main main= new Main();
+        control=new Controller();
 
-        Main principal= new Main();
 
 
         int option=0;
 
         do{
-            option= principal.showMenu();
-            principal.executeOperation(option);
+            option= main.showMenu();
+            main.executeOperation(option);
 
         }while (option!=3);
 
@@ -59,20 +63,21 @@ public class Main {
         switch(operation) {
 
             case 1:
-
-
-
+                String input=sc.nextLine();
+                control.readLine(input);
 
                 break;
 
             case 2:
-
-
+                Chooser chooser=new Chooser();
+                String path=chooser.getPath();
+                System.out.println(path);
 
 
                 break;
 
             case 3:
+                control.WriteJson();
                 System.out.println("Bye!");
                 break;
 
