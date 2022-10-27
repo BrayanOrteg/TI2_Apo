@@ -25,14 +25,9 @@ public class Controller{
 
         System.out.println(Arrays.toString(cityArray.toArray()));
         System.out.println(Arrays.toString(countryArray.toArray()));
-        String charsToRemove = "'(),";
 
-        /*
-        for (char c : charsToRemove.toCharArray()) {
-            prueba = prueba.replace(String.valueOf(c), "");
-        }
 
-         */
+
 
     }
 
@@ -78,34 +73,7 @@ public class Controller{
         });
     }
 
-    /*
-    public static long[] quickSort(long[]a, int first, int last){
-        long piv = (a[first] + a[last])/2;
-        int i = first;
-        int j = last;
 
-        while (i<j){
-            while (a[i]<piv) i++;
-            while (a[j]>piv) j--;
-            if(i<=j){
-                long x = a[i];
-                a[i] = a[j];
-                a[j] = x;
-                i++;
-                j--;
-            }
-        }
-        if(first<j){
-            a = quickSort(a, first, j);
-        }
-        if(last>i){
-            a = quickSort(a, i, last);
-        }
-
-        return a;
-    }
-
-     */
 
     //Json methods
     public void WriteJson(){
@@ -183,15 +151,138 @@ public class Controller{
         }
     }
 
-    public void readSQL(String path){
+    public void readSQL(String path) {
+        try {
+            //Read SQL
+            File file = new File(path);
+            FileInputStream fis = new FileInputStream(file);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+
+            String text=reader.readLine();
+            String [] command;
+
+            while (text != null) {
+
+                text=cleanCommand(text);
+
+
+
+                command= text.split(" ");
+                if(command.length>2){
+                    if(command[0].equals("INSERT")){
+                        verifyInsert(command);
+
+                    }else if(command[0].equals("SELECT")){
+                        System.out.println(text);
+                        verifySelect(command);
+                    }else if(command[0].equals("DELETE")){
+                        verifyDelete(command);
+                    }
+
+                }else {
+                    System.out.println("Invalid command");
+                }
+
+
+
+                text = reader.readLine();
+            }
+
+            fis.close();
+
+            }catch(FileNotFoundException e){
+                e.printStackTrace();
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+
 
     }
+    /*
+    INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57
+INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2
+SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
+     */
+
+    private void verifyInsert(String [] command){
+
+        String correctFormat;
+        if (command[2].equals("countriesid")){
+            correctFormat="INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57";
+            String [] arrayCorrectFormat= correctFormat.split(" ");
+
+            if(command.length==11){
+                arrayCorrectFormat [7]=command[7];
+                arrayCorrectFormat[8]=command[8];
+                arrayCorrectFormat[9]=command[9];
+                arrayCorrectFormat[10]=command[10];
+
+                StringBuffer cadena = new StringBuffer();
+                StringBuffer cadena2= new StringBuffer();
+                for (int x=0;x<command.length;x++){
+                    cadena =cadena.append(command[x]);
+                    cadena2= cadena2.append(arrayCorrectFormat[x]);
+                }
+
+                if (cadena.toString().equals(cadena2.toString())){
+                    System.out.println("Correct format");
+                }
+            }
+
+        } else if (command[2].equals("citiesid")) {
+
+
+        }
+    }
+
+    private void verifySelect(String [] command){
+        if(command[3].equals("countries")){
+
+
+        } else if (command[3].equals("cities")) {
+
+
+        }
+    }
+
+    private void verifyDelete(String [] command){
+        if (command[2].equals("countriesid")){
+
+
+        } else if (command[2].equals("citiesid")) {
+
+
+        }
+    }
+
+    private String cleanCommand(String command){
+        String charsToRemove = "'(),";
+
+        for (char c : charsToRemove.toCharArray()) {
+            command = command.replace(String.valueOf(c), "");
+        }
+
+        return command;
+
+    }
+
 
     public void readLine(String input){
 
 
     }
 
+    public String listCountries(){
+       String  out="There are no countries to show";
 
+       if(!countryArray.isEmpty()) {
+           out="";
+           for (Country p : countryArray) {
+               out += p.getName() + " ID: " + p.getId();
+           }
+       }
+       return out;
+    }
 
 }
