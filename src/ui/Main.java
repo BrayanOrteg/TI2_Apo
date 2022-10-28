@@ -22,8 +22,6 @@ public class Main {
         Main main= new Main();
         control=new Controller();
 
-
-
         int option=0;
 
         do{
@@ -31,8 +29,6 @@ public class Main {
             main.executeOperation(option);
 
         }while (option!=4);
-
-
 
     }
 
@@ -63,16 +59,30 @@ public class Main {
 
             case 1:
                 UUID code=UUID.randomUUID();
+
                 System.out.println("If your are going to insert an element, please use this code: "+code);
                 String input=sc.nextLine();
-                control.readLine(input);
+
+                String cleanInput=control.cleanCommand(input);
+                String [] command= cleanInput.split(" ");
+
+                try{
+                    control.verifyFormat(command,input);
+                }catch (Exception e){
+                    System.out.println(e);
+                }
 
                 break;
 
             case 2:
                 Chooser chooser=new Chooser();
                 String path=chooser.getPath();
-                control.readSQL(path);
+
+                try{
+                    control.readSQL(path);
+                }catch (Exception e){
+                    System.out.println(e);
+                }
 
 
                 break;

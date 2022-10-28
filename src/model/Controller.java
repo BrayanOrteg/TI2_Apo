@@ -1,6 +1,8 @@
 package model;
 import java.security.PrivateKey;
 import java.util.*;
+
+import Exceptions.FormatException;
 import com.google.gson.Gson;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -151,8 +153,8 @@ public class Controller{
         }
     }
 
-    public void readSQL(String path) {
-        try {
+    public void readSQL(String path) throws Exception {
+
             //Read SQL
             File file = new File(path);
             FileInputStream fis = new FileInputStream(file);
@@ -161,42 +163,22 @@ public class Controller{
 
             String text=reader.readLine();
             String [] command;
+            String cleanText="";
 
             while (text != null) {
 
-                text=cleanCommand(text);
+                cleanText=cleanCommand(text);
 
-
-
-                command= text.split(" ");
+                command= cleanText.split(" ");
                 if(command.length>2){
-                    if(command[0].equals("INSERT")){
-                        verifyInsert(command);
-
-                    }else if(command[0].equals("SELECT")){
-                        System.out.println(text);
-                        verifySelect(command);
-                    }else if(command[0].equals("DELETE")){
-                        verifyDelete(command);
-                    }
-
+                    verifyFormat(command,text);
                 }else {
-                    System.out.println("Invalid command");
+                    throw new FormatException();
                 }
-
-
-
                 text = reader.readLine();
             }
 
             fis.close();
-
-            }catch(FileNotFoundException e){
-                e.printStackTrace();
-            } catch(IOException e){
-                e.printStackTrace();
-            }
-
 
     }
     /*
@@ -205,58 +187,160 @@ INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-02
 SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
      */
 
-    private void verifyInsert(String [] command){
+
+    public void verifyFormat(String [] command,String text) throws Exception{
+        if(command[0].equals("INSERT")){
+            verifyInsert(command,text);
+        }else if(command[0].equals("SELECT")){
+            verifySelect(command, text);
+        }else if(command[0].equals("DELETE")){
+            verifyDelete(command,text);
+        }
+        else{
+            throw new FormatException();
+        }
+    }
+
+
+    private void verifyInsert(String [] command,String text) throws Exception {
 
         String correctFormat;
-        if (command[2].equals("countriesid")){
-            correctFormat="INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57";
-            String [] arrayCorrectFormat= correctFormat.split(" ");
 
-            if(command.length==11){
-                arrayCorrectFormat [7]=command[7];
-                arrayCorrectFormat[8]=command[8];
-                arrayCorrectFormat[9]=command[9];
-                arrayCorrectFormat[10]=command[10];
+        try {
+            if (command[2].equals("countriesid")) {
+                String id;
+                String countryName;
+                String countryCode;
+                String population;
 
-                StringBuffer cadena = new StringBuffer();
-                StringBuffer cadena2= new StringBuffer();
-                for (int x=0;x<command.length;x++){
-                    cadena =cadena.append(command[x]);
-                    cadena2= cadena2.append(arrayCorrectFormat[x]);
+                if (command.length == 11) {
+                    id = command[7];
+                    countryName = command[8];
+                    population = command[9];
+                    countryCode = command[10];
+
+                }else if(command.length == 12){
+                    id = command[7];
+                    countryName = command[8] +" " +command[9];
+                    population = command[10];
+                    countryCode = command[11];
+                }else {
+                    throw new FormatException();
                 }
 
-                if (cadena.toString().equals(cadena2.toString())){
-                    System.out.println("Correct format");
+                correctFormat = "INSERT INTO countries(id, name, population, countryCode) VALUES ('" + id + "', '" + countryName + "', " + population + ", '" + countryCode + "')";
+
+            }else if (command[2].equals("citiesid")) {
+
+                String id;
+                String cityName;
+                String countryId;
+                String population;
+
+                if (command.length == 11) {
+                    id = command[7];
+                    cityName = command[8];
+                    countryId= command[9];
+                    population= command[10];
+
+                }else if(command.length == 12){
+                    id = command[7];
+                    cityName = command[8] + " " +command[9];
+                    countryId= command[10];
+                    population= command[11];
+                }else {
+                    throw new FormatException();
                 }
+
+                correctFormat = "INSERT INTO cities(id, name, countryID, population) VALUES ('" + id + "', '" + cityName + "', '" + countryId + "', " + population + ")";
+
+            }else{
+                throw new FormatException();
             }
 
-        } else if (command[2].equals("citiesid")) {
+            if (!correctFormat.equals(text)) {
+                System.out.println(correctFormat);
+                System.out.println(text);
+                throw new FormatException();
+            }
 
-
+        }catch (Exception e) {
+            throw new FormatException();
         }
     }
 
-    private void verifySelect(String [] command){
-        if(command[3].equals("countries")){
+    private void verifySelect(String [] command,String text) throws Exception{
 
+        String region;
+        String filterVar;
+        String operator;
+        String condition;
+        String orderVar;
+        String correctFormat;
 
-        } else if (command[3].equals("cities")) {
+        try {
 
+            if (command.length == 4) {
 
+                region = command[3];
+
+                correctFormat = "SELECT * FROM " + region;
+
+            } else if (command.length == 8) {
+                region = command[3];
+                filterVar = command[5];
+                operator = command[6];
+                condition = command[7];
+
+                correctFormat = "SELECT * FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition;
+
+            } else if (command.length == 11) {
+
+                region = command[3];
+                filterVar = command[5];
+                operator = command[6];
+                condition = command[7];
+                orderVar = command[10];
+
+                correctFormat = "SELECT * FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition + " ORDER BY " + orderVar;
+
+            } else {
+                throw new FormatException();
+            }
+            if (!correctFormat.equals(text)) {
+                System.out.println(correctFormat);
+                System.out.println(text);
+                throw new FormatException();
+            }
+        }catch (Exception e){
+            throw new FormatException();
         }
     }
 
-    private void verifyDelete(String [] command){
-        if (command[2].equals("countriesid")){
+    private void verifyDelete(String [] command,String text) throws Exception{
 
+        if (command.length == 7) {
 
-        } else if (command[2].equals("citiesid")) {
+            String region = command[2];
+            String filterVar = command[4];
+            String operator = command[5];
+            String condition = command[6];
 
+            String correctFormat = "DELETE FROM "+region+" WHERE "+ filterVar+" " + operator+" " + condition;
 
+            if (!correctFormat.equals(text)) {
+                System.out.println(correctFormat);
+                System.out.println(text);
+                throw new FormatException();
+            }
+        }else {
+            throw new FormatException();
         }
+
     }
 
-    private String cleanCommand(String command){
+
+    public String cleanCommand(String command){
         String charsToRemove = "'(),";
 
         for (char c : charsToRemove.toCharArray()) {
@@ -267,11 +351,6 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
 
     }
 
-
-    public void readLine(String input){
-
-
-    }
 
     public String listCountries(){
        String  out="There are no countries to show";
@@ -284,5 +363,6 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
        }
        return out;
     }
+
 
 }
