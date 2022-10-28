@@ -201,16 +201,16 @@ public class Controller{
     }
     /*
     INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57
-INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2
-SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
+    INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2
+    SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
      */
 
     private void verifyInsert(String [] command){
 
-        String correctFormat;
+        String correctFormat="";
 
 
-        if (command[2].equals("countriesid")){g
+        if (command[2].equals("countriesid")){
             correctFormat="INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57";
             String [] arrayCorrectFormat= correctFormat.split(" ");
             StringBuffer cadena = new StringBuffer();
