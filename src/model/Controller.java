@@ -208,32 +208,100 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
     private void verifyInsert(String [] command){
 
         String correctFormat;
-        if (command[2].equals("countriesid")){
+
+
+        if (command[2].equals("countriesid")){g
             correctFormat="INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57";
             String [] arrayCorrectFormat= correctFormat.split(" ");
-
+            StringBuffer cadena = new StringBuffer();
+            StringBuffer cadena2= new StringBuffer();
+            //Contries with one word
             if(command.length==11){
                 arrayCorrectFormat [7]=command[7];
                 arrayCorrectFormat[8]=command[8];
                 arrayCorrectFormat[9]=command[9];
                 arrayCorrectFormat[10]=command[10];
 
-                StringBuffer cadena = new StringBuffer();
-                StringBuffer cadena2= new StringBuffer();
+
                 for (int x=0;x<command.length;x++){
                     cadena =cadena.append(command[x]);
                     cadena2= cadena2.append(arrayCorrectFormat[x]);
                 }
 
                 if (cadena.toString().equals(cadena2.toString())){
-                    System.out.println("Correct format");
+                    System.out.println("Correct format contries 1 word");
+                }else System.out.println("Invalid format");
+
+                //Contries with 2 words
+            }else if(command.length==12){
+                correctFormat="INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Paises bajos 50.2 +57";
+                arrayCorrectFormat= correctFormat.split(" ");
+
+                arrayCorrectFormat [7]=command[7];
+                arrayCorrectFormat[8]=command[8];
+                arrayCorrectFormat[9]=command[9];
+                arrayCorrectFormat[10]=command[10];
+                arrayCorrectFormat[11]= command[11];
+
+                for (int x=0;x<command.length;x++){
+                    cadena =cadena.append(command[x]);
+                    cadena2= cadena2.append(arrayCorrectFormat[x]);
                 }
-            }
+                if (cadena.toString().equals(cadena2.toString())){
+                    System.out.println("Correct format countries 2 words");
 
+                }else System.out.println("Invalid format");
+
+            }else System.out.println("Invalid format for countries");
+
+
+            //Cities
         } else if (command[2].equals("citiesid")) {
+            correctFormat="INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2";
+            String [] arrayCorrectFormat= correctFormat.split(" ");
+            StringBuffer cadena = new StringBuffer();
+            StringBuffer cadena2= new StringBuffer();
 
 
-        }
+            //Cities with one word
+            if(command.length==11) {
+                arrayCorrectFormat[7] = command[7];
+                arrayCorrectFormat[8] = command[8];
+                arrayCorrectFormat[9] = command[9];
+                arrayCorrectFormat[10] = command[10];
+
+
+                for (int x = 0; x < command.length; x++) {
+                    cadena = cadena.append(command[x]);
+                    cadena2 = cadena2.append(arrayCorrectFormat[x]);
+                }
+
+                if (cadena.toString().equals(cadena2.toString())) {
+                    System.out.println("Correct format cities 1 word");
+                }else System.out.println("Invalid format");
+
+                //Cities 2 words
+            }else if(command.length==12){
+                correctFormat="INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Santiago Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2";
+                arrayCorrectFormat= correctFormat.split(" ");
+
+                arrayCorrectFormat [7]=command[7];
+                arrayCorrectFormat[8]=command[8];
+                arrayCorrectFormat[9]=command[9];
+                arrayCorrectFormat[10]=command[10];
+                arrayCorrectFormat[11]= command[11];
+
+                for (int x=0;x<command.length;x++){
+                    cadena =cadena.append(command[x]);
+                    cadena2= cadena2.append(arrayCorrectFormat[x]);
+                }
+                if (cadena.toString().equals(cadena2.toString())){
+                    System.out.println("Correct format cities 2 words");
+                }
+            }else System.out.println("Invalid format cities");
+
+            //Invalid format general
+        }else System.out.println("Invalid format");
     }
 
     private void verifySelect(String [] command){
