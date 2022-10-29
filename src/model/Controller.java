@@ -18,12 +18,20 @@ public class Controller{
     private ArrayList<City> orderCityArray;
     private ArrayList<Country> orderCountryArray;
 
+    private ArrayList<String> operators;
+
 
 
     public Controller(){
         countryArray=new ArrayList<>();
         orderCityArray=new ArrayList<>();
         orderCountryArray=new ArrayList<>();
+        operators=new ArrayList<>();
+
+        operators.add("<");
+        operators.add(">");
+        operators.add("=");
+
 
         ReadJson();
 
@@ -311,6 +319,8 @@ public class Controller{
         String orderVar="";
         String correctFormat="";
 
+        text=cleanCommand(text);
+
         try {
 
             if (command.length == 4) {
@@ -348,6 +358,9 @@ public class Controller{
                     throw new FormatException();
                 }
 
+                if(!operators.contains(operator)){
+                    throw new VariableException();
+                }
 
                 if (command.length == 11) {
 
@@ -364,7 +377,26 @@ public class Controller{
 
 
                 if (region.equals("countries")) {
-                    selectCountriesPopulation(operator, condition);
+
+                    switch (filterVar){
+
+                        case "population":
+                            selectCountriesPopulation(operator,condition);
+                            break;
+
+                        case "name":
+                            break;
+
+                        case "code":
+                            break;
+
+                        case "id":
+                            break;
+
+                        default:
+                            throw new VariableException();
+
+                    }
 
                     if (!orderVar.equals("")){
                         if(orderVar.equals("name")){
@@ -380,7 +412,26 @@ public class Controller{
 
                     return orderCountryArray;
                 } else if (region.equals("cities")) {
-                    selectCitiesPopulation(operator, condition);
+
+                    switch (filterVar){
+
+                        case "population":
+                            selectCountriesPopulation(operator,condition);
+                            break;
+
+                        case "name":
+                            break;
+
+                        case "country":
+                            break;
+
+                        case "id":
+                            break;
+
+                        default:
+                            throw new VariableException();
+
+                    }
                     if (!orderVar.equals("")){
                         if(orderVar.equals("name")){
                             sortCityByName();
@@ -410,21 +461,94 @@ public class Controller{
 
     private void verifyDelete(String [] command,String text) throws Exception{
 
-        if (command.length == 7) {
+        text=cleanCommand(text);
 
-            String region = command[2];
-            String filterVar = command[4];
-            String operator = command[5];
-            String condition = command[6];
+        try {
 
-            String correctFormat = "DELETE FROM "+region+" WHERE "+ filterVar+" " + operator+" " + condition;
+            if (command.length == 7) {
 
-            if (!correctFormat.equals(text)) {
-                System.out.println(correctFormat);
-                System.out.println(text);
+                String region = command[2];
+                String filterVar = command[4];
+                String operator = command[5];
+                String condition = command[6];
+
+                String correctFormat = "DELETE FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition;
+
+                if(!operators.contains(operator)){
+                    throw new VariableException();
+                }
+
+                if (!correctFormat.equals(text)) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+                }
+                if (region.equals("countries")) {
+
+                    switch (filterVar){
+
+                        case "population":
+                            selectCountriesPopulation(operator,condition);
+                            break;
+
+                        case "name":
+                            break;
+
+                        case "code":
+                            break;
+
+                        case "id":
+                            break;
+
+                        default:
+                            throw new VariableException();
+
+                    }
+
+                    for(Country obj: orderCountryArray){
+                        countryArray.remove(obj);
+                    }
+
+                } else if (region.equals("cities")) {
+
+                    switch (filterVar){
+
+                        case "population":
+                            selectCountriesPopulation(operator,condition);
+                            break;
+
+                        case "name":
+                            break;
+
+                        case "country":
+                            break;
+
+                        case "id":
+                            break;
+
+                        default:
+                            throw new VariableException();
+
+                    }
+
+                    for(City obj: orderCityArray){
+                        cityArray.remove(obj);
+                    }
+
+
+
+                } else {
+                    throw new VariableException();
+                }
+
+
+
+            } else {
                 throw new FormatException();
             }
-        }else {
+        }catch(VariableException e){
+            throw new VariableException();
+        }catch (Exception e){
             throw new FormatException();
         }
 
@@ -447,7 +571,6 @@ public class Controller{
         boolean verify=false;
 
         for (int i=0; i<countryArray.size();i++){
-
             if(countryArray.get(i).getId().equals(id)){
                 verify=true;
             }
