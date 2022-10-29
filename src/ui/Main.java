@@ -67,7 +67,7 @@ public class Main {
                 String [] command= cleanInput.split(" ");
 
                 try{
-                    control.verifyFormat(command,input);
+                    System.out.println(control.verifyFormat(command,input));
                 }catch (Exception e){
                     System.out.println(e);
                 }

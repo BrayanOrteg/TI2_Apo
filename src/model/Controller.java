@@ -2,7 +2,10 @@ package model;
 import java.security.PrivateKey;
 import java.util.*;
 
+import Exceptions.CountryNotFoundException;
 import Exceptions.FormatException;
+import Exceptions.TypeException;
+import Exceptions.VariableException;
 import com.google.gson.Gson;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +20,6 @@ public class Controller{
 
 
 
-
     public Controller(){
         countryArray=new ArrayList<>();
         orderCityArray=new ArrayList<>();
@@ -28,52 +30,46 @@ public class Controller{
         System.out.println(Arrays.toString(cityArray.toArray()));
         System.out.println(Arrays.toString(countryArray.toArray()));
 
-
-
-
     }
 
 // city
     public void sortCityByName(){
-        Collections.sort(cityArray, new Comparator<City>() {
-
-            @Override
-            public int compare(City o1, City o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        Collections.sort(orderCityArray, Comparator.comparing(City::getName));
     }
 
     public void sortCityByPopulation(){
-        Collections.sort(cityArray, new Comparator<City>() {
+        Collections.sort(orderCityArray, Comparator.comparingInt(City::getPopulation));
+    }
 
-            @Override
-            public int compare(City o1, City o2) {
-                return o1.getPopulation()-o2.getPopulation();
-            }
-        });
+    public void sortCityById(){
+        Collections.sort(orderCityArray, Comparator.comparing(City::getId));
+    }
+
+    public void sortCityByCountyId(){
+        Collections.sort(orderCityArray, Comparator.comparing(City::getCountryId));
     }
 
     //country
     public void sortCountryByName(){
-        Collections.sort(cityArray, new Comparator<City>() {
-
-            @Override
-            public int compare(City o1, City o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        Collections.sort(orderCountryArray, Comparator.comparing(Country::getName));
     }
 
     public void sortCountryByPopulation(){
-        Collections.sort(cityArray, new Comparator<City>() {
-
-            @Override
-            public int compare(City o1, City o2) {
-                return o1.getPopulation()-o2.getPopulation();
-            }
-        });
+        Collections.sort(orderCountryArray, (o1, o2) -> (int)(o1.getPopulation()-o2.getPopulation()));
     }
+
+    public void sortCountryById(){
+        Collections.sort(orderCountryArray, Comparator.comparing(Country::getId));
+    }
+
+    public void sortCountryByCode(){
+        Collections.sort(orderCountryArray, Comparator.comparing(Country::getCountryCode));
+    }
+
+    public void sortPrincipalCountryById(){
+        Collections.sort(countryArray, Comparator.comparing(Country::getId));
+    }
+
 
 
 
@@ -183,28 +179,31 @@ public class Controller{
     }
     /*
     INSERT INTO countriesid name population countryCode VALUES 6ec3e8ec-3dd0-11ed-b878-0242ac120002 Colombia 50.2 +57
-INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2
-SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
+    INSERT INTO citiesid name countryID population VALUES e4aa04f6-3dd0-11ed-b878-0242ac120002 Cali 6ec3e8ec-3dd0-11ed-b878-0242ac120002 2.2
+    SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
      */
 
 
-    public void verifyFormat(String [] command,String text) throws Exception{
+    public String verifyFormat(String [] command,String text) throws Exception{
+        String out="";
         if(command[0].equals("INSERT")){
             verifyInsert(command,text);
         }else if(command[0].equals("SELECT")){
-            verifySelect(command, text);
+            out=printArray(verifySelect(command,text));
         }else if(command[0].equals("DELETE")){
             verifyDelete(command,text);
         }
         else{
             throw new FormatException();
         }
+        return out;
     }
 
 
-    private void verifyInsert(String [] command,String text) throws Exception {
+    private String verifyInsert(String [] command,String text) throws Exception {
 
         String correctFormat;
+        String out="";
 
         try {
             if (command[2].equals("countriesid")) {
@@ -230,6 +229,19 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
 
                 correctFormat = "INSERT INTO countries(id, name, population, countryCode) VALUES ('" + id + "', '" + countryName + "', " + population + ", '" + countryCode + "')";
 
+                if (!correctFormat.equals(text)) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+                }
+
+                double doublePop=Double.parseDouble(population);
+
+                Country newCountry=new Country(id,countryName,countryCode,doublePop);
+                countryArray.add(newCountry);
+
+                out="A new country has been added";
+
             }else if (command[2].equals("citiesid")) {
 
                 String id;
@@ -254,29 +266,50 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
 
                 correctFormat = "INSERT INTO cities(id, name, countryID, population) VALUES ('" + id + "', '" + cityName + "', '" + countryId + "', " + population + ")";
 
+                if (!correctFormat.equals(text)) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+                }
+
+                //double Pop=Double.parseDouble(population);
+
+                int intPop=Integer.parseInt(population);
+
+                sortPrincipalCountryById();
+
+
+                if(searchCountry(countryId)){
+                    City newCity= new City(id,cityName,countryId,intPop);
+                    cityArray.add(newCity);
+                    out="A new city has been added";
+                }else{
+                    throw new CountryNotFoundException();
+                }
+
             }else{
                 throw new FormatException();
             }
 
-            if (!correctFormat.equals(text)) {
-                System.out.println(correctFormat);
-                System.out.println(text);
-                throw new FormatException();
-            }
-
+        }catch (CountryNotFoundException e){
+            throw new CountryNotFoundException();
+        }catch (NumberFormatException e){
+            throw new TypeException();
         }catch (Exception e) {
             throw new FormatException();
         }
+
+        return out;
     }
 
-    private void verifySelect(String [] command,String text) throws Exception{
+    private ArrayList verifySelect(String [] command,String text) throws Exception{
 
-        String region;
-        String filterVar;
-        String operator;
-        String condition;
-        String orderVar;
-        String correctFormat;
+        String region="";
+        String filterVar="";
+        String operator="";
+        String condition="";
+        String orderVar="";
+        String correctFormat="";
 
         try {
 
@@ -286,7 +319,22 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
 
                 correctFormat = "SELECT * FROM " + region;
 
-            } else if (command.length == 8) {
+                if (!correctFormat.equals(text)) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+
+                }
+
+                if (region.equals("countries")) {
+                    return countryArray;
+                } else if (region.equals("cities")) {
+                    return cityArray;
+                } else {
+                    throw new VariableException();
+                }
+
+            }else if (command.length == 8 || command.length == 11) {
                 region = command[3];
                 filterVar = command[5];
                 operator = command[6];
@@ -294,27 +342,70 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
 
                 correctFormat = "SELECT * FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition;
 
-            } else if (command.length == 11) {
+                if (!correctFormat.equals(text) && command.length==8) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+                }
 
-                region = command[3];
-                filterVar = command[5];
-                operator = command[6];
-                condition = command[7];
-                orderVar = command[10];
 
-                correctFormat = "SELECT * FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition + " ORDER BY " + orderVar;
+                if (command.length == 11) {
 
-            } else {
+                    orderVar = command[10];
+
+                    correctFormat += " ORDER BY " + orderVar;
+
+                    if (!correctFormat.equals(text)) {
+                        System.out.println(correctFormat);
+                        System.out.println(text);
+                        throw new FormatException();
+                    }
+                }
+
+
+                if (region.equals("countries")) {
+                    selectCountriesPopulation(operator, condition);
+
+                    if (!orderVar.equals("")){
+                        if(orderVar.equals("name")){
+                            sortCountryByName();
+                        } else if (orderVar.equals("population")) {
+                            sortCountryByPopulation();
+                        } else if (orderVar.equals("id")) {
+                            sortCountryById();
+                        }else if(orderVar.equals("CountryCode")){
+                            sortCountryByCode();
+                        }
+                    }
+
+                    return orderCountryArray;
+                } else if (region.equals("cities")) {
+                    selectCitiesPopulation(operator, condition);
+                    if (!orderVar.equals("")){
+                        if(orderVar.equals("name")){
+                            sortCityByName();
+                        } else if (orderVar.equals("population")) {
+                            sortCityByPopulation();
+                        } else if (orderVar.equals("id")) {
+                            sortCityById();
+                        }else if(orderVar.equals("CountryCode")){
+                            sortCityByCountyId();
+                        }
+                    }
+
+                    return orderCityArray;
+                }
+            }else{
                 throw new FormatException();
             }
-            if (!correctFormat.equals(text)) {
-                System.out.println(correctFormat);
-                System.out.println(text);
-                throw new FormatException();
-            }
+
+        }catch (VariableException e){
+            throw new VariableException();
         }catch (Exception e){
             throw new FormatException();
         }
+
+        return null;
     }
 
     private void verifyDelete(String [] command,String text) throws Exception{
@@ -351,6 +442,70 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
 
     }
 
+    public boolean searchCountry(String id){
+
+        boolean verify=false;
+
+        for (int i=0; i<countryArray.size();i++){
+
+            if(countryArray.get(i).getId().equals(id)){
+                verify=true;
+            }
+        }
+        return verify;
+    }
+
+    public void selectCountriesPopulation(String operator, String condition){
+        orderCountryArray=new ArrayList<>();
+        double conditionNum= Double.parseDouble(condition);
+
+        if (operator.equals(">")){
+            for(int i=0; i <countryArray.size();i++){
+                if(countryArray.get(i).getPopulation()>conditionNum) {
+                    orderCountryArray.add(countryArray.get(i));
+                }
+            }
+        } else if (operator.equals("<")) {
+            for(int i=0; i <countryArray.size();i++){
+                if(countryArray.get(i).getPopulation()<conditionNum) {
+                    orderCountryArray.add(countryArray.get(i));
+                }
+            }
+        }else {
+            for(int i=0; i <countryArray.size();i++){
+                if(countryArray.get(i).getPopulation()==conditionNum) {
+                    orderCountryArray.add(countryArray.get(i));
+                }
+            }
+        }
+    }
+
+    public void selectCitiesPopulation(String operator, String condition){
+        orderCityArray=new ArrayList<>();
+        double conditionNum= Double.parseDouble(condition);
+
+        if (operator.equals(">")){
+            for(int i=0; i <cityArray.size();i++){
+                if(cityArray.get(i).getPopulation()>conditionNum) {
+                    orderCityArray.add(cityArray.get(i));
+                }
+            }
+        } else if (operator.equals("<")) {
+            for(int i=0; i <cityArray.size();i++){
+                if(cityArray.get(i).getPopulation()<conditionNum) {
+                    orderCityArray.add(cityArray.get(i));
+                }
+            }
+        }else {
+            for(int i=0; i <cityArray.size();i++){
+                if(cityArray.get(i).getPopulation()==conditionNum) {
+                    orderCityArray.add(cityArray.get(i));
+                }
+            }
+        }
+    }
+
+
 
     public String listCountries(){
        String  out="There are no countries to show";
@@ -358,10 +513,19 @@ SELECT * FROM cities WHERE name = Guadalajara ORDER BY population
        if(!countryArray.isEmpty()) {
            out="";
            for (Country p : countryArray) {
-               out += p.getName() + " ID: " + p.getId();
+               out += p.getName() + " ID: " + p.getId()+"\n";
            }
        }
        return out;
+    }
+
+    public <T> String printArray(ArrayList<T> array){
+        StringBuilder out= new StringBuilder();
+
+        for(T obj: array){
+            out.append(obj).append("\n");
+        }
+        return out.toString();
     }
 
 
