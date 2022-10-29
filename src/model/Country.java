@@ -12,6 +12,10 @@ public class Country {
         this.population = population;
     }
 
+    public String toString(){
+        return name;
+    }
+
     public String getId() {
         return id;
     }
