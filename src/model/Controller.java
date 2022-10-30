@@ -2,10 +2,7 @@ package model;
 import java.security.PrivateKey;
 import java.util.*;
 
-import Exceptions.CountryNotFoundException;
-import Exceptions.FormatException;
-import Exceptions.TypeException;
-import Exceptions.VariableException;
+import Exceptions.*;
 import com.google.gson.Gson;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -18,12 +15,20 @@ public class Controller{
     private ArrayList<City> orderCityArray;
     private ArrayList<Country> orderCountryArray;
 
+    private ArrayList<String> operators;
+
 
 
     public Controller(){
         countryArray=new ArrayList<>();
         orderCityArray=new ArrayList<>();
         orderCountryArray=new ArrayList<>();
+        operators=new ArrayList<>();
+
+        operators.add("<");
+        operators.add(">");
+        operators.add("=");
+
 
         ReadJson();
 
@@ -237,8 +242,13 @@ public class Controller{
 
                 double doublePop=Double.parseDouble(population);
 
+                if(searchCountry(id)){
+                    throw new CountryExistsException();
+                }
+
                 Country newCountry=new Country(id,countryName,countryCode,doublePop);
                 countryArray.add(newCountry);
+                WriteJson();
 
                 out="A new country has been added";
 
@@ -282,6 +292,7 @@ public class Controller{
                 if(searchCountry(countryId)){
                     City newCity= new City(id,cityName,countryId,intPop);
                     cityArray.add(newCity);
+                    WriteJson();
                     out="A new city has been added";
                 }else{
                     throw new CountryNotFoundException();
@@ -295,6 +306,8 @@ public class Controller{
             throw new CountryNotFoundException();
         }catch (NumberFormatException e){
             throw new TypeException();
+        }catch (CountryExistsException e){
+            throw new CountryExistsException();
         }catch (Exception e) {
             throw new FormatException();
         }
@@ -311,25 +324,44 @@ public class Controller{
         String orderVar="";
         String correctFormat="";
 
+        text=cleanCommand(text);
+
         try {
 
-            if (command.length == 4) {
+            if (command.length == 4 || command.length == 7) {
 
                 region = command[3];
 
                 correctFormat = "SELECT * FROM " + region;
 
-                if (!correctFormat.equals(text)) {
-                    System.out.println(correctFormat);
-                    System.out.println(text);
-                    throw new FormatException();
+                if(command.length == 4){
 
+                    if (!correctFormat.equals(text)) {
+                        System.out.println(correctFormat);
+                        System.out.println(text);
+                        throw new FormatException();
+
+                    }
+                }
+                if(command.length==7){
+                    orderVar = command[6];
                 }
 
                 if (region.equals("countries")) {
-                    return countryArray;
+
+                    orderCountryArray=countryArray;
+                    if(command.length==7){
+                        sortForCountries(orderVar);
+                    }
+                    return orderCountryArray;
+
                 } else if (region.equals("cities")) {
-                    return cityArray;
+
+                    orderCityArray=cityArray;
+                    if(command.length==7){
+                        sortForCities(orderVar);
+                    }
+                    return orderCityArray;
                 } else {
                     throw new VariableException();
                 }
@@ -348,6 +380,9 @@ public class Controller{
                     throw new FormatException();
                 }
 
+                if(!operators.contains(operator)){
+                    throw new VariableException();
+                }
 
                 if (command.length == 11) {
 
@@ -362,39 +397,28 @@ public class Controller{
                     }
                 }
 
+                if (region.equals("countries")){
+                    orderCountryArray=filterSwitchCountry(filterVar,condition,operator,region);
 
-                if (region.equals("countries")) {
-                    selectCountriesPopulation(operator, condition);
+                    if (command.length==11) {
+                        if (orderCountryArray != null) {
 
-                    if (!orderVar.equals("")){
-                        if(orderVar.equals("name")){
-                            sortCountryByName();
-                        } else if (orderVar.equals("population")) {
-                            sortCountryByPopulation();
-                        } else if (orderVar.equals("id")) {
-                            sortCountryById();
-                        }else if(orderVar.equals("CountryCode")){
-                            sortCountryByCode();
+                            sortForCountries(orderVar);
                         }
                     }
-
                     return orderCountryArray;
-                } else if (region.equals("cities")) {
-                    selectCitiesPopulation(operator, condition);
-                    if (!orderVar.equals("")){
-                        if(orderVar.equals("name")){
-                            sortCityByName();
-                        } else if (orderVar.equals("population")) {
-                            sortCityByPopulation();
-                        } else if (orderVar.equals("id")) {
-                            sortCityById();
-                        }else if(orderVar.equals("CountryCode")){
-                            sortCityByCountyId();
+
+                }else if (region.equals("cities")) {
+                    orderCityArray=filterSwitchCity(filterVar,condition,operator,region);
+
+                    if (command.length==11) {
+                        if (orderCityArray != null) {
+                            sortForCities(orderVar);
                         }
                     }
-
                     return orderCityArray;
-                }
+                }else throw new VariableException();
+
             }else{
                 throw new FormatException();
             }
@@ -404,27 +428,179 @@ public class Controller{
         }catch (Exception e){
             throw new FormatException();
         }
+    }
 
-        return null;
+    private void sortForCountries(String orderVar)throws Exception{
+        if (!orderVar.equals("")) {
+            if (orderVar.equals("name")) {
+                sortCountryByName();
+            } else if (orderVar.equals("population")) {
+                sortCountryByPopulation();
+            } else if (orderVar.equals("id")) {
+                sortCountryById();
+            } else if (orderVar.equals("CountryCode")) {
+                sortCountryByCode();
+            } else throw new VariableException();
+
+        } else throw new VariableException();
+    }
+
+    private void sortForCities(String orderVar)throws Exception{
+        if (!orderVar.equals("")) {
+            if (orderVar.equals("name")) {
+                sortCityByName();
+            } else if (orderVar.equals("population")) {
+                sortCityByPopulation();
+            } else if (orderVar.equals("id")) {
+                sortCityById();
+            } else if (orderVar.equals("Country")) {
+                sortCityByCountyId();
+            } else throw new VariableException();
+
+        } else throw new VariableException();
+    }
+
+    private ArrayList<Country> filterSwitchCountry(String filterVar, String condition, String operator, String region) throws Exception{
+
+        if (region.equals("countries")) {
+
+            switch (filterVar){
+
+                case "population":
+                    selectCountries(operator,condition,3);
+                    break;
+
+                case "name":
+
+                    selectCountries(operator,condition,1);
+                    break;
+
+                case "code":
+                    selectCountries(operator,condition,2);
+                    break;
+
+                case "id":
+                    selectCountries(operator,condition,0);
+                    break;
+
+                default:
+                    throw new VariableException();
+            }
+
+            return orderCountryArray;
+        } else{
+            throw new VariableException();
+        }
+
+    }
+
+    private ArrayList<City> filterSwitchCity(String filterVar, String condition, String operator, String region) throws Exception{
+        if (region.equals("cities")) {
+
+            switch (filterVar){
+
+                case "population":
+                    selectCities(operator,condition,3);
+                    break;
+
+                case "name":
+                    selectCities(operator,condition,1);
+                    break;
+
+                case "country":
+                    condition=searchCountryByName(condition);
+                    if(condition.equals(""))throw new VariableException();
+                    selectCities(operator,condition,2);
+                    break;
+
+                case "id":
+                    selectCities(operator,condition,0);
+                    break;
+
+                default:
+                    throw new VariableException();
+
+            }
+            return orderCityArray;
+
+        } else {
+            throw new VariableException();
+        }
     }
 
     private void verifyDelete(String [] command,String text) throws Exception{
 
-        if (command.length == 7) {
+        text=cleanCommand(text);
 
-            String region = command[2];
-            String filterVar = command[4];
-            String operator = command[5];
-            String condition = command[6];
+        try {
 
-            String correctFormat = "DELETE FROM "+region+" WHERE "+ filterVar+" " + operator+" " + condition;
+            if (command.length == 3) {
 
-            if (!correctFormat.equals(text)) {
-                System.out.println(correctFormat);
-                System.out.println(text);
+                String region = command[2];
+
+                String correctFormat = "DELETE FROM " + region;
+
+                if (!correctFormat.equals(text)) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+                }
+
+                if (region.equals("countries")){
+                    countryArray.clear();
+                    WriteJson();
+                }else if (region.equals("cities")){
+                    cityArray.clear();
+                    WriteJson();
+                }else{
+                    throw new VariableException();
+                }
+
+            }else if (command.length == 7) {
+
+                String region = command[2];
+                String filterVar = command[4];
+                String operator = command[5];
+                String condition = command[6];
+
+                String correctFormat = "DELETE FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition;
+
+                if(!operators.contains(operator)){
+                    throw new VariableException();
+                }
+
+                if (!correctFormat.equals(text)) {
+                    System.out.println(correctFormat);
+                    System.out.println(text);
+                    throw new FormatException();
+                }
+
+                if (region.equals("countries")) {
+                    orderCountryArray=filterSwitchCountry(filterVar,condition,operator,region);
+
+                    for(Country obj: orderCountryArray){
+                        countryArray.remove(obj);
+                        WriteJson();
+                    }
+
+                } else if (region.equals("cities")) {
+                    orderCityArray=filterSwitchCity(filterVar,condition,operator,region);
+
+                    for(City obj: orderCityArray){
+                        cityArray.remove(obj);
+                        WriteJson();
+                    }
+
+                } else {
+                    throw new VariableException();
+                }
+
+            } else {
                 throw new FormatException();
             }
-        }else {
+        }catch(VariableException e){
+            throw new VariableException();
+        }catch (Exception e){
             throw new FormatException();
         }
 
@@ -447,7 +623,6 @@ public class Controller{
         boolean verify=false;
 
         for (int i=0; i<countryArray.size();i++){
-
             if(countryArray.get(i).getId().equals(id)){
                 verify=true;
             }
@@ -455,55 +630,61 @@ public class Controller{
         return verify;
     }
 
-    public void selectCountriesPopulation(String operator, String condition){
+    public String searchCountryByName(String name){
+
+        String id="";
+
+        for (int i=0; i<countryArray.size();i++){
+            if(countryArray.get(i).getName().equals(name)){
+                id=countryArray.get(i).getId();
+            }
+        }
+        return id;
+    }
+
+    public void selectCountries(String operator, String condition, int var){
         orderCountryArray=new ArrayList<>();
-        double conditionNum= Double.parseDouble(condition);
 
         if (operator.equals(">")){
             for(int i=0; i <countryArray.size();i++){
-                if(countryArray.get(i).getPopulation()>conditionNum) {
+                if(countryArray.get(i).compareOperator(var,condition)> 0) {
                     orderCountryArray.add(countryArray.get(i));
                 }
             }
         } else if (operator.equals("<")) {
             for(int i=0; i <countryArray.size();i++){
-                if(countryArray.get(i).getPopulation()<conditionNum) {
+                if(countryArray.get(i).compareOperator(var,condition) < 0) {
                     orderCountryArray.add(countryArray.get(i));
                 }
             }
         }else {
             for(int i=0; i <countryArray.size();i++){
-                if(countryArray.get(i).getPopulation()==conditionNum) {
+                if(countryArray.get(i).compareOperator(var,condition) == 0) {
                     orderCountryArray.add(countryArray.get(i));
                 }
             }
         }
     }
 
-    public void selectCitiesPopulation(String operator, String condition){
+    public void selectCities(String operator, String condition, int var){
         orderCityArray=new ArrayList<>();
-        double conditionNum= Double.parseDouble(condition);
-
-        if (operator.equals(">")){
-            for(int i=0; i <cityArray.size();i++){
-                if(cityArray.get(i).getPopulation()>conditionNum) {
+        for(int i=0; i <cityArray.size();i++) {
+            if (operator.equals(">")) {
+                if (cityArray.get(i).compareOperator(var,condition)> 0) {
                     orderCityArray.add(cityArray.get(i));
                 }
-            }
-        } else if (operator.equals("<")) {
-            for(int i=0; i <cityArray.size();i++){
-                if(cityArray.get(i).getPopulation()<conditionNum) {
+            } else if (operator.equals("<")) {
+                if (cityArray.get(i).compareOperator(var,condition) < 0) {
                     orderCityArray.add(cityArray.get(i));
                 }
-            }
-        }else {
-            for(int i=0; i <cityArray.size();i++){
-                if(cityArray.get(i).getPopulation()==conditionNum) {
+            } else {
+                if (cityArray.get(i).compareOperator(var,condition) == 0) {
                     orderCityArray.add(cityArray.get(i));
                 }
             }
         }
     }
+
 
 
 

@@ -12,6 +12,20 @@ public class Country {
         this.population = population;
     }
 
+    public double compareOperator(int var,String o2){
+
+        String [] variables={id,name,countryCode,population+""};
+        String o1=variables[var];
+
+        if(var==3){
+            double p= Double.parseDouble(o2);
+            return population-p;
+        }
+
+        return o1.compareTo(o2);
+    }
+
+
     public String toString(){
         return name;
     }
