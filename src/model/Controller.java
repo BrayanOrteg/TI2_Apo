@@ -709,5 +709,19 @@ public class Controller{
         return out.toString();
     }
 
+    public int getSizeCity(){
+        return cityArray.size();
+    }
 
+    public int getCountrySize(){
+        return countryArray.size();
+    }
+
+    public ArrayList<City> getOrderCityArray() {
+        return orderCityArray;
+    }
+
+    public ArrayList<Country> getOrderCountryArray() {
+        return orderCountryArray;
+    }
 }
