@@ -189,6 +189,80 @@ public class ControllerTest extends TestCase {
         System.out.println(controller.printArray(controller.getOrderCountryArray()));
     }
 
+    //Delete test
+
+    public void test3_DeleteById(){
+        setupStage1();
+        UUID code=UUID.randomUUID();
+
+
+
+        String command="INSERT INTO cities(id, name, countryID, population) VALUES ('"+code.toString()+"', 'Palmira', '6ec3e8ec-3dd0-11ed-b878-0242ac120002', 2222)";
+        String inputClean=controller.cleanCommand(command);
+
+        String [] commmandToSend=inputClean.split(" ");
+
+        int sizeBefore=controller.getSizeCity();
+        try {
+            controller.verifyFormat(commmandToSend,command);
+
+            String delete="DELETE FROM cities WHERE id = "+code.toString();
+            inputClean=controller.cleanCommand(delete);
+            String [] command2=inputClean.split(" ");
+
+            System.out.println("\nCities before delete:\n"+ controller.printArray(controller.getCityArray()));
+
+            controller.verifyFormat(command2,delete);
+            System.out.println("\nCities after delete:\n"+ controller.printArray(controller.getCityArray()));
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        assertEquals(controller.getSizeCity(),sizeBefore);
+    }
+
+    public void test3_DeleteColombiaCities(){
+        setupStage1();
+        UUID code=UUID.randomUUID();
+
+       String cali= "INSERT INTO cities(id, name, countryID, population) VALUES ('cd573167-47fb-4738-9a2c-4fb19842f912', 'Cali', '6ec3e8ec-3dd0-11ed-b878-0242ac120002', 4)";
+       String bogota= "INSERT INTO cities(id, name, countryID, population) VALUES ('c0e39b51-49a0-4c6f-8540-9bbad3741426', 'Bogotá', '6ec3e8ec-3dd0-11ed-b878-0242ac120002', 8)";
+
+
+        String inputClean="";
+
+
+        int sizeBefore=controller.getSizeCity();
+
+        try {
+
+            String delete="DELETE FROM cities WHERE country = Colombia";
+            inputClean=controller.cleanCommand(delete);
+            String [] command2=inputClean.split(" ");
+
+            System.out.println("\nCities before delete:\n"+ controller.printArray(controller.getCityArray()));
+
+            controller.verifyFormat(command2,delete);
+            System.out.println("\nCities after delete:\n"+ controller.printArray(controller.getCityArray()));
+
+            assertEquals(controller.getSizeCity(),sizeBefore-2);
+
+            inputClean=controller.cleanCommand(cali);
+            String [] caliCommand=inputClean.split(" ");
+            controller.verifyFormat(caliCommand,cali);
+
+            inputClean=controller.cleanCommand(bogota);
+            String [] bogotaCommand=inputClean.split(" ");
+            controller.verifyFormat(bogotaCommand,bogota);
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+
+    }
+
 
 
 }

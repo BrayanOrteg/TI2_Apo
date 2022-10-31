@@ -724,4 +724,8 @@ public class Controller{
     public ArrayList<Country> getOrderCountryArray() {
         return orderCountryArray;
     }
+
+    public ArrayList<City> getCityArray() {
+        return cityArray;
+    }
 }
