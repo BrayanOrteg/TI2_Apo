@@ -1,2 +1,2 @@
-INSERT INTO cities(id, name, countryID, population) VALUES ('dfb23195-292c-4138-b54b-b003e824e73d', 'Buenos Aires', '9a2ace30-a26d-4269-a265-6fac077c488c', 6)
-INSERT INTO cities(id, name, countryID, population) VALUES ('7661838d-1c5c-4c57-a90e-e1de9cbdefe6', 'Cancun', 'a1ad24d5-ef62-4849-a2e2-5eea782e6118', 8)
+INSERT INTO cities(id, name, countryID, population) VALUES ('dfb23195-292c-4138-b54b-b003e824e73d', 'Rosario', '9a2ace30-a26d-4269-a265-6fac077c488c', 6)
+INSERT INTO cities(id, name, countryID, population) VALUES ('7661838d-1c5c-4c57-a90e-e1de9cbdefe6', 'Tijuana', 'a1ad24d5-ef62-4849-a2e2-5eea782e6118', 8)

@@ -235,8 +235,7 @@ public class Controller{
                 correctFormat = "INSERT INTO countries(id, name, population, countryCode) VALUES ('" + id + "', '" + countryName + "', " + population + ", '" + countryCode + "')";
 
                 if (!correctFormat.equals(text)) {
-                    System.out.println(correctFormat);
-                    System.out.println(text);
+
                     throw new FormatException();
                 }
 
@@ -277,8 +276,7 @@ public class Controller{
                 correctFormat = "INSERT INTO cities(id, name, countryID, population) VALUES ('" + id + "', '" + cityName + "', '" + countryId + "', " + population + ")";
 
                 if (!correctFormat.equals(text)) {
-                    System.out.println(correctFormat);
-                    System.out.println(text);
+
                     throw new FormatException();
                 }
 
@@ -337,8 +335,7 @@ public class Controller{
                 if(command.length == 4){
 
                     if (!correctFormat.equals(text)) {
-                        System.out.println(correctFormat);
-                        System.out.println(text);
+
                         throw new FormatException();
 
                     }
@@ -375,8 +372,7 @@ public class Controller{
                 correctFormat = "SELECT * FROM " + region + " WHERE " + filterVar + " " + operator + " " + condition;
 
                 if (!correctFormat.equals(text) && command.length==8) {
-                    System.out.println(correctFormat);
-                    System.out.println(text);
+
                     throw new FormatException();
                 }
 
@@ -391,8 +387,6 @@ public class Controller{
                     correctFormat += " ORDER BY " + orderVar;
 
                     if (!correctFormat.equals(text)) {
-                        System.out.println(correctFormat);
-                        System.out.println(text);
                         throw new FormatException();
                     }
                 }
